@@ -1,12 +1,13 @@
 package io.github.ilyazinkovich.geo;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.newSetFromMap;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.stream.Stream;
 
 public class NavigableStorage<T> {
 
@@ -18,12 +19,20 @@ public class NavigableStorage<T> {
   }
 
   public void add(final Long key, final T value) {
-    map.computeIfAbsent(key, k -> newSetFromMap(new ConcurrentHashMap<>()))
-        .add(value);
+    map.computeIfAbsent(key, k -> newSetFromMap(new ConcurrentHashMap<>())).add(value);
   }
 
-  public Stream<T> search(final Long fromInclusive, final Long toInclusive) {
-    return map.subMap(fromInclusive, INCLUSIVE, toInclusive, INCLUSIVE)
-        .values().stream().flatMap(Collection::stream);
+  public Set<T> get(final Long key) {
+    return map.getOrDefault(key, emptySet());
+  }
+
+  public Set<T> search(final Long fromInclusive, final Long toInclusive) {
+    Set<T> result = new HashSet<>();
+    Collection<Set<T>> subsets =
+        map.subMap(fromInclusive, INCLUSIVE, toInclusive, INCLUSIVE).values();
+    for (Set<T> subset : subsets) {
+      result.addAll(subset);
+    }
+    return result;
   }
 }
