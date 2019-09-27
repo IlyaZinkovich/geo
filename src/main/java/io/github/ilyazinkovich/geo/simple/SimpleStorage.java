@@ -1,5 +1,6 @@
-package io.github.ilyazinkovich.geo;
+package io.github.ilyazinkovich.geo.simple;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.newSetFromMap;
 
 import java.util.Set;
@@ -20,6 +21,6 @@ public class SimpleStorage<T> {
   }
 
   public Set<T> search(final Long key) {
-    return map.get(key);
+    return map.getOrDefault(key, emptySet());
   }
 }

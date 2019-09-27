@@ -1,5 +1,7 @@
 package io.github.ilyazinkovich.geo;
 
+import io.github.ilyazinkovich.geo.navigable.NavigableStorage;
+import io.github.ilyazinkovich.geo.simple.SimpleStorage;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -15,6 +17,44 @@ import org.openjdk.jmh.runner.options.TimeValue;
 
 public class StorageBenchmark {
 
+  public static void main(String[] args) throws Exception {
+    new Runner(new OptionsBuilder()
+        .include(StorageBenchmark.class.getSimpleName())
+        .mode(Mode.All)
+        .timeout(TimeValue.seconds(2))
+        .threads(8)
+        .forks(1)
+        .warmupForks(1)
+        .warmupIterations(2)
+        .warmupTime(TimeValue.seconds(4))
+        .measurementIterations(2)
+        .measurementTime(TimeValue.seconds(4))
+        .build())
+        .run();
+  }
+
+  @Benchmark
+  public void navigableStorageAdd(EmptyNavigableStorageWithRandom state) {
+    state.storage.add(state.random.nextLong(), new Object());
+  }
+
+  @Benchmark
+  public void navigableStorageSearch(FullNavigableStorageWithRandom state) {
+    long one = state.random.nextLong();
+    long two = state.random.nextLong();
+    state.storage.search(Math.min(one, two), Math.max(one, two));
+  }
+
+  @Benchmark
+  public void simpleStorageAdd(EmptySimpleStorageWithRandom state) {
+    state.storage.add(state.random.nextLong(), new Object());
+  }
+
+  @Benchmark
+  public void simpleStorageSearch(FullSimpleStorageWithRandom state) {
+    state.storage.search(state.random.nextLong());
+  }
+
   @State(Scope.Benchmark)
   public static class EmptyNavigableStorageWithRandom {
 
@@ -26,11 +66,6 @@ public class StorageBenchmark {
       storage = new NavigableStorage<>(new ConcurrentSkipListMap<>());
       random = new Random();
     }
-  }
-
-  @Benchmark
-  public void navigableStorageAdd(EmptyNavigableStorageWithRandom state) {
-    state.storage.add(state.random.nextLong(), new Object());
   }
 
   @State(Scope.Benchmark)
@@ -49,13 +84,6 @@ public class StorageBenchmark {
     }
   }
 
-  @Benchmark
-  public void navigableStorageSearch(FullNavigableStorageWithRandom state) {
-    long one = state.random.nextLong();
-    long two = state.random.nextLong();
-    state.storage.search(Math.min(one, two), Math.max(one, two));
-  }
-
   @State(Scope.Benchmark)
   public static class EmptySimpleStorageWithRandom {
 
@@ -67,11 +95,6 @@ public class StorageBenchmark {
       storage = new SimpleStorage<>(new ConcurrentHashMap<>());
       random = new Random();
     }
-  }
-
-  @Benchmark
-  public void simpleStorageAdd(EmptySimpleStorageWithRandom state) {
-    state.storage.add(state.random.nextLong(), new Object());
   }
 
   @State(Scope.Benchmark)
@@ -88,25 +111,5 @@ public class StorageBenchmark {
         storage.add(random.nextLong(), new Object());
       }
     }
-  }
-
-  @Benchmark
-  public void simpleStorageSearch(FullSimpleStorageWithRandom state) {
-    state.storage.search(state.random.nextLong());
-  }
-
-  public static void main(String[] args) throws Exception {
-    new Runner(new OptionsBuilder()
-        .include(StorageBenchmark.class.getSimpleName())
-        .mode(Mode.All)
-        .threads(8)
-        .forks(1)
-        .warmupForks(1)
-        .warmupIterations(2)
-        .warmupTime(TimeValue.seconds(4))
-        .measurementIterations(2)
-        .measurementTime(TimeValue.seconds(4))
-        .build())
-        .run();
   }
 }

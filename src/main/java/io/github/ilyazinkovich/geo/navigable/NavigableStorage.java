@@ -1,4 +1,4 @@
-package io.github.ilyazinkovich.geo;
+package io.github.ilyazinkovich.geo.navigable;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.newSetFromMap;
@@ -22,7 +22,7 @@ public class NavigableStorage<T> {
     map.computeIfAbsent(key, k -> newSetFromMap(new ConcurrentHashMap<>())).add(value);
   }
 
-  public Set<T> get(final Long key) {
+  public Set<T> search(final Long key) {
     return map.getOrDefault(key, emptySet());
   }
 
