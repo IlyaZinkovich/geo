@@ -19,6 +19,11 @@ import org.openjdk.jmh.runner.options.TimeValue;
 
 public class GeoStorageBenchmark {
 
+  private static final int RADIUS_IN_METERS = 10000;
+  private static final int MAX_POINTS_COUNT = 1_000_000;
+  private static final int MIN_STORAGE_LEVEL = 10;
+  private static final int MAX_STORAGE_LEVEL = 12;
+
   public static void main(String[] args) throws Exception {
     new Runner(new OptionsBuilder()
         .include(GeoStorageBenchmark.class.getSimpleName())
@@ -45,8 +50,7 @@ public class GeoStorageBenchmark {
   public void navigableStorageSearch(FullNavigableGeoStorageWithRandom state) {
     double lat = state.random.nextDouble() % 90;
     double lng = state.random.nextDouble() % 180;
-    int twoKilometers = 2000;
-    state.storage.search(lat, lng, twoKilometers);
+    state.storage.search(lat, lng, RADIUS_IN_METERS);
   }
 
   @Benchmark
@@ -60,8 +64,7 @@ public class GeoStorageBenchmark {
   public void simpleStorageSearch(FullSimpleGeoStorageWithRandom state) {
     double lat = state.random.nextDouble() % 90;
     double lng = state.random.nextDouble() % 180;
-    int twoKilometers = 2000;
-    state.storage.search(lat, lng, twoKilometers);
+    state.storage.search(lat, lng, RADIUS_IN_METERS);
   }
 
   @State(Scope.Benchmark)
@@ -72,10 +75,9 @@ public class GeoStorageBenchmark {
 
     @Setup(Level.Iteration)
     public void setUp() {
-      int storageLevel = 20;
       NavigableStorage<Object> underlyingStorage =
           new NavigableStorage<>(new ConcurrentSkipListMap<>());
-      storage = new NavigableGeoStorage<>(storageLevel, underlyingStorage);
+      storage = new NavigableGeoStorage<>(MAX_STORAGE_LEVEL, underlyingStorage);
       random = new Random();
     }
   }
@@ -88,12 +90,11 @@ public class GeoStorageBenchmark {
 
     @Setup(Level.Iteration)
     public void setUp() {
-      int storageLevel = 20;
       NavigableStorage<Object> underlyingStorage =
           new NavigableStorage<>(new ConcurrentSkipListMap<>());
-      storage = new NavigableGeoStorage<>(storageLevel, underlyingStorage);
+      storage = new NavigableGeoStorage<>(MAX_STORAGE_LEVEL, underlyingStorage);
       random = new Random();
-      for (int i = 0; i < 1_000_000; i++) {
+      for (int i = 0; i < MAX_POINTS_COUNT; i++) {
         double lat = random.nextDouble() % 90;
         double lng = random.nextDouble() % 180;
         storage.addPoint(new Object(), lat, lng);
@@ -109,11 +110,9 @@ public class GeoStorageBenchmark {
 
     @Setup(Level.Iteration)
     public void setUp() {
-      int minLevel = 18;
-      int maxLevel = 20;
       SimpleStorage<Object> underlyingStorage =
           new SimpleStorage<>(new ConcurrentHashMap<>());
-      storage = new SimpleGeoStorage<>(minLevel, maxLevel, underlyingStorage);
+      storage = new SimpleGeoStorage<>(MIN_STORAGE_LEVEL, MAX_STORAGE_LEVEL, underlyingStorage);
       random = new Random();
     }
   }
@@ -126,13 +125,11 @@ public class GeoStorageBenchmark {
 
     @Setup(Level.Iteration)
     public void setUp() {
-      int minLevel = 18;
-      int maxLevel = 20;
       SimpleStorage<Object> underlyingStorage =
           new SimpleStorage<>(new ConcurrentHashMap<>());
-      storage = new SimpleGeoStorage<>(minLevel, maxLevel, underlyingStorage);
+      storage = new SimpleGeoStorage<>(MIN_STORAGE_LEVEL, MAX_STORAGE_LEVEL, underlyingStorage);
       random = new Random();
-      for (int i = 0; i < 1_000_000; i++) {
+      for (int i = 0; i < MAX_POINTS_COUNT; i++) {
         double lat = random.nextDouble() % 90;
         double lng = random.nextDouble() % 180;
         storage.addPoint(new Object(), lat, lng);
